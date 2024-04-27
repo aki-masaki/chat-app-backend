@@ -3,7 +3,6 @@ package com.ai.chatapp;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -18,8 +17,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
-  public JWTAuthorizationFilter(AuthenticationManager authenticationManager) {
-    super(authenticationManager);
+  public JWTAuthorizationFilter() {
+    super(authentication -> authentication);
   }
 
   @Override

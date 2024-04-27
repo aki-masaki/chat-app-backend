@@ -17,8 +17,8 @@ public class WebSecurityConfig {
         .authorizeHttpRequests((requests) -> requests
             .requestMatchers("/auth/signup", "/auth/login").permitAll()
             .anyRequest().authenticated())
-        .addFilter(new JWTAuthenticationFilter(authenticationManager()))
-        .addFilter(new JWTAuthorizationFilter(authenticationManager()))
+        .addFilter(jwtAuthenticationFilter())
+        .addFilter(new JWTAuthorizationFilter())
         .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         // TODO: configure csrf
         .csrf((csrf) -> csrf.disable());
@@ -26,7 +26,13 @@ public class WebSecurityConfig {
     return http.build();
   }
 
-  private AuthenticationManager authenticationManager() {
-    return authentication -> authentication;
+  @Bean
+  public AuthenticationManager authenticationManager() {
+    return authentiacation -> authentiacation;
+  }
+
+  @Bean
+  public JWTAuthenticationFilter jwtAuthenticationFilter() {
+    return new JWTAuthenticationFilter();
   }
 }

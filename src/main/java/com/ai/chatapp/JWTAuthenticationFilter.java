@@ -3,10 +3,12 @@ package com.ai.chatapp;
 import java.io.IOException;
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.auth0.jwt.JWT;
@@ -21,10 +23,19 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
   private AuthenticationManager authenticationManager;
 
-  public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
-    this.authenticationManager = authenticationManager;
+  @Autowired
+  private UserRepository userRepository;
+
+  public JWTAuthenticationFilter() {
+    this.authenticationManager = authentication -> authentication;
 
     setFilterProcessesUrl("/auth/login");
+  }
+
+  @Override
+  @Autowired
+  public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+    super.setAuthenticationManager(authenticationManager);
   }
 
   @Override
@@ -33,6 +44,15 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     try {
       User user = new ObjectMapper()
           .readValue(req.getInputStream(), User.class);
+
+      User foundUser = userRepository.findByUsername(user.getUsername());
+
+      if (foundUser == null)
+        return null;
+
+      // Incorrect password
+      if (!new BCryptPasswordEncoder().matches(user.getPassword(), foundUser.getPassword()))
+        return null;
 
       return authenticationManager.authenticate(
           new UsernamePasswordAuthenticationToken(
@@ -54,5 +74,6 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         .sign(Algorithm.HMAC512(Constants.JWT_SECRET.getBytes()));
 
     res.addHeader(Constants.JWT_HEADER_NAME, token);
+    res.getWriter().append("{\"token\": \"" + token + "\", \"username\": \"" + (String) auth.getPrincipal() + "\"}");
   }
 }

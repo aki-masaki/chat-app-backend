@@ -23,11 +23,11 @@ public class AuthController {
   Logger logger = LoggerFactory.getLogger(AuthController.class);
 
   @PostMapping(path = "/signup", consumes = MediaType.APPLICATION_JSON_VALUE)
-  public Long signup(@RequestBody UserDto userDto) {
+  public String signup(@RequestBody UserDto userDto) {
     User user = userRepository.findByUsername(userDto.username());
 
     if (user != null)
-      return (long) -1;
+      return "{\"success\": false, \"reason\": \"User already exists\"}";
 
     user = new User();
 
@@ -36,25 +36,12 @@ public class AuthController {
 
     userRepository.save(user);
 
-    return user.getId();
-  }
-
-  @PostMapping(path = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
-  public Long login(@RequestBody UserDto userDto) {
-    User user = userRepository.findByUsername(userDto.username());
-
-    if (user == null)
-      return (long) -1;
-
-    if (!bCryptPasswordEncoder().matches(userDto.password(), user.getPassword()))
-      return (long) -2;
-
-    return user.getId();
+    return "{\"success\": true, \"id\": \"" + user.getId() + "\"}";
   }
 
   @GetMapping("/test")
   public String test() {
-    return "test";
+    return "{\"success\": true}";
   }
 
   @Bean
